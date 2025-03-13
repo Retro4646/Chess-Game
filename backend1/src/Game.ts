@@ -7,6 +7,7 @@ import { GAME_OVER, INIT_GAME, MOVE } from './message';
         public  player2: WebSocket;
         private board: Chess;
         private startTime: Date;
+        private moveCount = 0;
         
 
         constructor(player1: WebSocket  , player2: WebSocket){
@@ -33,16 +34,18 @@ import { GAME_OVER, INIT_GAME, MOVE } from './message';
             to: string;
         }){
             // Validate the type of move using zod
-            if (this.board.moves.length % 2 === 0 && socket !== this.player1){
+            if (this.moveCount % 2 === 0 && socket !== this.player1){
                 return
             }
-            if (this.board.moves.length % 2 === 1 && socket !== this.player2){
+            if (this.moveCount % 2 === 1 && socket !== this.player2){
                 return
             }
 
             try {
                 this.board.move(move);
+                
             } catch(e) {
+                console.log(e);
                 return;
             }
 
@@ -63,16 +66,17 @@ import { GAME_OVER, INIT_GAME, MOVE } from './message';
                 return;
             }
 
-            if (this.board.moves.length % 2 === 0){
-                this.player2.emit(JSON.stringify({
+            if (this.board.moves().length % 2 === 0){
+                this.player2.send(JSON.stringify({
                     type: MOVE,
                     playload: move,
                 }))
             } else {
-                this.player1.emit(JSON.stringify({
+                this.player1.send(JSON.stringify({
                     type: MOVE,
                     playload: move,
                 }))
             }
+            this.moveCount++;
         }
     }
